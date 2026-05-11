@@ -1,11 +1,13 @@
 extends Node3D
-## Drone Light Animator — двигает огни дронов по поверхности корабля.
-## Прицепляется к LOD_Cosmos и анимирует DroneLights каждый кадр.
-## Также управляет вспышками фар (flares).
+## Drone Light Animator v2 — куб-версия.
+## Дроны скользят по поверхности куба, оставаясь на своих гранях.
 
 @export var lod_cosmos: Node3D
+@export var cube_size: float = 400.0
 
 var _time: float = 0.0
+var _half: float:
+	get: return cube_size * 0.5
 
 
 func _ready() -> void:
@@ -26,34 +28,36 @@ func _process(delta: float) -> void:
 		if child.name.begins_with("DroneLight"):
 			_animate_drone(child, delta)
 		elif child.name.begins_with("Flare"):
-			_animate_flare(child)
+			# Flares not in v3 yet, but keep if they exist
+			pass
 
 
 func _animate_drone(light: OmniLight3D, delta: float) -> void:
-	var speed_x: float = light.get_meta("speed_x", 0.0)
-	var speed_z: float = light.get_meta("speed_z", 0.0)
-	var bound: float = light.get_meta("bound", 200.0)
+	var speed_u: float = light.get_meta("speed_u", 0.0)
+	var speed_v: float = light.get_meta("speed_v", 0.0)
+	var face_normal: Vector3 = light.get_meta("face_normal", Vector3.UP)
+	var u: Vector3 = light.get_meta("u_axis", Vector3.RIGHT)
+	var v: Vector3 = light.get_meta("v_axis", Vector3.FORWARD)
 	
-	light.position.x += speed_x * delta
-	light.position.z += speed_z * delta
+	# Current position relative to face center
+	var face_center: Vector3 = face_normal * _half
+	var rel: Vector3 = light.position - face_center
+	var u_pos: float = rel.dot(u)
+	var v_pos: float = rel.dot(v)
 	
-	# Отскок от границ
-	if abs(light.position.x) > bound:
-		light.position.x = sign(light.position.x) * bound
-		light.set_meta("speed_x", -speed_x)
-	if abs(light.position.z) > bound:
-		light.position.z = sign(light.position.z) * bound
-		light.set_meta("speed_z", -speed_z)
+	# Move
+	u_pos += speed_u * delta
+	v_pos += speed_v * delta
 	
-	# Мерцание
-	light.light_energy = 0.4 + sin(_time * 3.0 + light.position.x * 0.1) * 0.3
-
-
-func _animate_flare(light: OmniLight3D) -> void:
-	var phase: float = light.get_meta("phase", 0.0)
-	# Вспышка раз в 2-5 секунд
-	var cycle: float = sin(_time * 1.5 + phase)
-	var flash: float = 0.0
-	if cycle > 0.85:
-		flash = (cycle - 0.85) / 0.15  # 0→1 за 0.15 цикла
-	light.light_energy = flash * 3.0
+	# Bounce at face edges
+	if abs(u_pos) > _half:
+		u_pos = sign(u_pos) * _half
+		light.set_meta("speed_u", -speed_u)
+	if abs(v_pos) > _half:
+		v_pos = sign(v_pos) * _half
+		light.set_meta("speed_v", -speed_v)
+	
+	light.position = face_center + u * u_pos + v * v_pos + face_normal * 0.2
+	
+	# Flicker
+	light.light_energy = 0.2 + sin(_time * 2.5 + u_pos * 0.1 + v_pos * 0.1) * 0.25

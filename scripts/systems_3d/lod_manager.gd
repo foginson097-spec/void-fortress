@@ -1,31 +1,36 @@
 extends Node
-## LOD Manager — включает/выключает 5 слоёв детализации корабля
-## в зависимости от расстояния камеры. Без загрузки — все слои в сцене.
+## LOD Manager v3 — per-face LOD for cube ship.
+## Detects which face the camera is on and shows that face's details.
 
 @export var camera: Camera3D
-@export var lod_cosmos: Node3D     # импостор (спрайт/силуэт)
-@export var lod_orbit: Node3D      # low-poly модель
-@export var lod_continent: Node3D  # средняя детализация
-@export var lod_city: Node3D       # здания
-@export var lod_street: Node3D     # NPC, детали
+@export var lod_cosmos: Node3D
+@export var lod_orbit: Node3D
 
-# Переходные зоны — чтобы не было резкого переключения
-@export var hysteresis: float = 0.05  # 5% гистерезис
+# Face LOD nodes (set in game_controller)
+var _face_continents: Dictionary = {}  # {0: Node3D, 1: Node3D, ...}
+var _face_cities: Dictionary = {}
+var _face_streets: Dictionary = {}
 
-# Текущее состояние
-var _current_lod: String = "orbit"
-var _previous_lod: String = "orbit"
+# Face names matching ship_builder
+const FACE_NAMES = ["Front", "Back", "Right", "Left", "Top", "Bottom"]
 
-# Сигналы
+@export var hysteresis: float = 0.05
+
+var _current_lod: String = "cosmos"
+var _active_face: int = -1
+
 signal lod_changed(from_lod: String, to_lod: String)
+signal face_changed(face_idx: int)
 
 
-func _ready() -> void:
-	if not camera:
-		camera = get_node_or_null("../Camera3D")
-	
-	# Начальное состояние: показываем орбитальный LOD
-	_set_lod("orbit")
+func register_face_lod(face_idx: int, lod_type: String, node: Node3D) -> void:
+	match lod_type:
+		"continent":
+			_face_continents[face_idx] = node
+		"city":
+			_face_cities[face_idx] = node
+		"street":
+			_face_streets[face_idx] = node
 
 
 func _process(_delta: float) -> void:
@@ -35,54 +40,63 @@ func _process(_delta: float) -> void:
 	var dist: float = 0.0
 	if camera.has_method("get_distance"):
 		dist = camera.get_distance()
-	else:
-		dist = camera.global_position.distance_to(Vector3.ZERO)
 	
 	var new_lod: String = _lod_from_distance(dist)
+	var new_face: int = -1
+	if camera.has_method("get_active_face"):
+		new_face = camera.get_active_face()
 	
+	# Update global LODs
 	if new_lod != _current_lod:
-		_previous_lod = _current_lod
 		_set_lod(new_lod)
+	
+	# Update face-specific LODs
+	if new_face != _active_face or new_lod != _current_lod:
+		_set_face_lod(new_face, new_lod)
+		_active_face = new_face
 
 
 func _lod_from_distance(dist: float) -> String:
-	# С гистерезисом
 	var h: float = 1.0 - hysteresis
-	
 	match _current_lod:
 		"cosmos":
 			if dist < 500.0 * h: return "orbit"
 		"orbit":
-			if dist < 40.0 * h: return "continent"
+			if dist < 80.0 * h: return "continent"
 			elif dist > 500.0 / h: return "cosmos"
 		"continent":
-			if dist < 4.0 * h: return "city"
-			elif dist > 40.0 / h: return "orbit"
+			if dist < 8.0 * h: return "city"
+			elif dist > 80.0 / h: return "orbit"
 		"city":
-			if dist < 0.5 * h: return "street"
-			elif dist > 4.0 / h: return "continent"
+			if dist < 1.0 * h: return "street"
+			elif dist > 8.0 / h: return "continent"
 		"street":
-			if dist > 0.5 / h: return "city"
-	
+			if dist > 1.0 / h: return "city"
 	return _current_lod
 
 
 func _set_lod(new_lod: String) -> void:
+	var prev: String = _current_lod
 	_current_lod = new_lod
 	
-	# Включаем только нужный слой
-	if lod_cosmos:
-		lod_cosmos.visible = (new_lod == "cosmos")
-	if lod_orbit:
-		lod_orbit.visible = (new_lod == "orbit")
-	if lod_continent:
-		lod_continent.visible = (new_lod == "continent")
-	if lod_city:
-		lod_city.visible = (new_lod == "city")
-	if lod_street:
-		lod_street.visible = (new_lod == "street")
+	if lod_cosmos: lod_cosmos.visible = (new_lod == "cosmos")
+	if lod_orbit: lod_orbit.visible = (new_lod == "orbit")
 	
-	lod_changed.emit(_previous_lod, new_lod)
+	lod_changed.emit(prev, new_lod)
+
+
+func _set_face_lod(face_idx: int, lod: String) -> void:
+	# Hide all face LODs, then show only the active face's LOD
+	for i in range(6):
+		if i in _face_continents:
+			_face_continents[i].visible = (i == face_idx and lod in ["continent", "city", "street"])
+		if i in _face_cities:
+			_face_cities[i].visible = (i == face_idx and lod in ["city", "street"])
+		if i in _face_streets:
+			_face_streets[i].visible = (i == face_idx and lod == "street")
+	
+	if face_idx != _active_face:
+		face_changed.emit(face_idx)
 
 
 func get_current_lod() -> String:
