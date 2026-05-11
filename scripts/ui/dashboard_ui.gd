@@ -1,14 +1,13 @@
 extends Control
-## Main dashboard — displays all resources, population, defense, sector info.
+## 3D Dashboard — минимальный оверлей поверх 3D-вида.
+## Показывает ресурсы, население, оборону — без перекрытия вида.
 
-@onready var resource_list: VBoxContainer = $ResourceList
-@onready var sector_label: Label = $Header/SectorLabel
+@onready var resource_panel: VBoxContainer = $ResourcePanel
 @onready var pop_label: Label = $Header/PopLabel
 @onready var defense_label: Label = $Header/DefenseLabel
+@onready var sector_label: Label = $Header/SectorLabel
 @onready var energy_label: Label = $Header/EnergyLabel
-@onready var wave_label: Label = $Header/WaveLabel
 
-# Resource display names and icons (emoji placeholders until user adds art)
 const RESOURCE_INFO = {
 	"ore": {"name": "Руда", "icon": "🪨", "color": Color(0.7, 0.5, 0.3)},
 	"gas": {"name": "Газ", "icon": "☁️", "color": Color(0.5, 0.7, 1.0)},
@@ -23,25 +22,28 @@ const RESOURCE_INFO = {
 	"energy": {"name": "Энергия", "icon": "🔋", "color": Color(1.0, 0.9, 0.2)}
 }
 
+# Только ключевые ресурсы для отображения (чтобы не засорять экран)
+const SHOWN_RESOURCES = ["ore", "gas", "crystals", "alloy", "microchips", "energy"]
+
 
 func refresh() -> void:
-	_update_resource_list()
+	_update_resources()
 	_update_header()
 
 
-func _update_resource_list() -> void:
-	# Clear and rebuild resource labels (simple approach for MVP)
-	for child in resource_list.get_children():
+func _update_resources() -> void:
+	for child in resource_panel.get_children():
 		child.queue_free()
 	
-	for res in RESOURCE_INFO:
+	for res in SHOWN_RESOURCES:
 		var amount: float = GameState.resources.get(res, 0.0)
-		var info: Dictionary = RESOURCE_INFO[res]
+		var info: Dictionary = RESOURCE_INFO.get(res, {})
 		
 		var label: Label = Label.new()
-		label.text = "%s %s: %.1f" % [info["icon"], info["name"], amount]
-		label.add_theme_color_override("font_color", info["color"])
-		resource_list.add_child(label)
+		label.text = "%s %s: %.1f" % [info.get("icon", "?"), info.get("name", res), amount]
+		label.add_theme_color_override("font_color", info.get("color", Color.WHITE))
+		label.add_theme_font_size_override("font_size", 14)
+		resource_panel.add_child(label)
 
 
 func _update_header() -> void:
@@ -49,16 +51,10 @@ func _update_header() -> void:
 		GameState.current_sector + 1,
 		GameState.sector_params.get("name", "Unknown")
 	]
-	pop_label.text = "👥 %d/%d" % [GameState.population, GameState.max_population]
-	defense_label.text = "🛡️ DPS: %.1f" % GameState.defense_dps
+	pop_label.text = "👥 Население: %d/%d" % [GameState.population, GameState.max_population]
+	defense_label.text = "🛡️ Оборона: %.1f DPS" % GameState.defense_dps
 	
-	# Energy balance
 	var produced: float = GameState.get_energy_production()
 	var consumed: float = GameState.get_total_energy_consumption()
-	var balance: float = produced - consumed
-	var energy_color: String = "green" if balance >= 0 else "red"
-	energy_label.text = "[color=%s]🔋 %.1f/%.1f[/color]" % [energy_color, produced, consumed]
-	
-	# Wave timer
-	# (We need a reference to DefenseSystem — we'll use a signal instead)
-	wave_label.text = "⚔️ Волна: ожидание..."
+	var color: String = "#00ff00" if produced >= consumed else "#ff4444"
+	energy_label.text = "[color=%s]🔋 %.1f/%.1f[/color]" % [color, produced, consumed]

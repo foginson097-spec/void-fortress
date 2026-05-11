@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://main0000000000"]
+[gd_scene load_steps=20 format=3 uid="uid://main3d00000000"]
 
 [ext_resource type="Script" path="res://scripts/game_controller.gd" id="1_ctrl"]
 [ext_resource type="Script" path="res://scripts/systems/resource_manager.gd" id="2_rm"]
@@ -8,36 +8,95 @@
 [ext_resource type="Script" path="res://scripts/systems/prestige.gd" id="6_pres"]
 [ext_resource type="Script" path="res://scripts/systems/ship_grid.gd" id="7_grid"]
 [ext_resource type="Script" path="res://scripts/systems/save_manager.gd" id="8_save"]
-[ext_resource type="Script" path="res://scripts/ui/dashboard_ui.gd" id="9_dash"]
-[ext_resource type="Script" path="res://scripts/ui/ship_view_ui.gd" id="10_ship"]
-[ext_resource type="Script" path="res://scripts/ui/upgrade_panel_ui.gd" id="11_upg"]
-[ext_resource type="Script" path="res://scripts/ui/prestige_ui.gd" id="12_pui"]
 
-[node name="Main" type="Node"]
+[ext_resource type="Script" path="res://scripts/systems_3d/orbit_camera.gd" id="9_cam"]
+[ext_resource type="Script" path="res://scripts/systems_3d/floating_origin.gd" id="10_fl"]
+[ext_resource type="Script" path="res://scripts/systems_3d/lod_manager.gd" id="11_lod"]
+[ext_resource type="Script" path="res://scripts/systems_3d/ship_builder.gd" id="12_sb"]
+[ext_resource type="Script" path="res://scripts/systems_3d/star_field.gd" id="13_star"]
+[ext_resource type="Script" path="res://scripts/systems_3d/atmosphere.gd" id="14_atmo"]
+
+[ext_resource type="Script" path="res://scripts/ui/dashboard_ui.gd" id="15_dash"]
+[ext_resource type="Script" path="res://scripts/ui/prestige_ui.gd" id="16_pres"]
+[ext_resource type="Script" path="res://scripts/ui/build_bar_ui.gd" id="17_bar"]
+
+[node name="Main" type="Node3D"]
 script = ExtResource("1_ctrl")
 
-[node name="ResourceManager" type="Node" parent="."]
+; ============ WORLD ============
+[node name="World" type="Node3D" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="World"]
+environment = SubResource("WorldEnvironment_xxx")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 0, 0)
+light_energy = 0.8
+shadow_enabled = true
+
+; --- Star Field ---
+[node name="StarField" type="Node3D" parent="World"]
+script = ExtResource("13_star")
+
+; --- Ship ---
+[node name="Ship" type="Node3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 500)
+
+[node name="LOD_Cosmos" type="Node3D" parent="World/Ship"]
+[node name="LOD_Orbit" type="Node3D" parent="World/Ship"]
+[node name="LOD_Continent" type="Node3D" parent="World/Ship"]
+[node name="LOD_City" type="Node3D" parent="World/Ship"]
+[node name="LOD_Street" type="Node3D" parent="World/Ship"]
+
+; --- Atmosphere ---
+[node name="Atmosphere" type="MeshInstance3D" parent="World/Ship"]
+script = ExtResource("14_atmo")
+mesh = SubResource("SphereMesh_atmo")
+
+; ============ CAMERA ============
+[node name="Camera3D" type="Camera3D" parent="."]
+script = ExtResource("9_cam")
+transform = Transform3D(1, 0, 0, 0, 0.866025, -0.5, 0, 0.5, 0.866025, 15, 8, 515)
+
+; ============ 3D SYSTEMS ============
+[node name="FloatingOrigin" type="Node3D" parent="."]
+script = ExtResource("10_fl")
+
+[node name="LODManager" type="Node" parent="."]
+script = ExtResource("11_lod")
+
+[node name="ShipBuilder" type="Node" parent="."]
+script = ExtResource("12_sb")
+ship_root = NodePath("../World/Ship")
+
+; ============ GAME LOGIC SYSTEMS ============
+[node name="Systems" type="Node" parent="."]
+
+[node name="ResourceManager" type="Node" parent="Systems"]
 script = ExtResource("2_rm")
 
-[node name="Crafter" type="Node" parent="."]
+[node name="Crafter" type="Node" parent="Systems"]
 script = ExtResource("3_craft")
 
-[node name="DefenseSystem" type="Node" parent="."]
+[node name="DefenseSystem" type="Node" parent="Systems"]
 script = ExtResource("4_def")
 
-[node name="Population" type="Node" parent="."]
+[node name="Population" type="Node" parent="Systems"]
 script = ExtResource("5_pop")
 
-[node name="Prestige" type="Node" parent="."]
+[node name="Prestige" type="Node" parent="Systems"]
 script = ExtResource("6_pres")
 
-[node name="ShipGrid" type="Node" parent="."]
+[node name="ShipGrid" type="Node" parent="Systems"]
 script = ExtResource("7_grid")
 
-[node name="SaveManager" type="Node" parent="."]
+[node name="SaveManager" type="Node" parent="Systems"]
 script = ExtResource("8_save")
 
-[node name="UI" type="Control" parent="."]
+; ============ UI (CanvasLayer поверх 3D) ============
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="UI" type="Control" parent="CanvasLayer"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -45,112 +104,70 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Dashboard" type="Control" parent="UI"]
-script = ExtResource("9_dash")
+; --- Dashboard (левый верх) ---
+[node name="Dashboard" type="Control" parent="CanvasLayer/UI"]
+script = ExtResource("15_dash")
 layout_mode = 0
-offset_right = 300.0
-offset_bottom = 720.0
-
-[node name="Header" type="VBoxContainer" parent="UI/Dashboard"]
-layout_mode = 0
-offset_right = 280.0
-offset_bottom = 140.0
 offset_left = 10.0
 offset_top = 10.0
+offset_right = 280.0
+offset_bottom = 400.0
 
-[node name="SectorLabel" type="Label" parent="UI/Dashboard/Header"]
+[node name="Header" type="VBoxContainer" parent="CanvasLayer/UI/Dashboard"]
+layout_mode = 0
+offset_right = 270.0
+offset_bottom = 200.0
+
+[node name="SectorLabel" type="Label" parent="CanvasLayer/UI/Dashboard/Header"]
 layout_mode = 2
 text = "Сектор 1: Пояс Астероидов"
 
-[node name="PopLabel" type="Label" parent="UI/Dashboard/Header"]
+[node name="PopLabel" type="Label" parent="CanvasLayer/UI/Dashboard/Header"]
 layout_mode = 2
 text = "👥 5/10"
 
-[node name="DefenseLabel" type="Label" parent="UI/Dashboard/Header"]
+[node name="DefenseLabel" type="Label" parent="CanvasLayer/UI/Dashboard/Header"]
 layout_mode = 2
 text = "🛡️ DPS: 0"
 
-[node name="EnergyLabel" type="Label" parent="UI/Dashboard/Header"]
+[node name="EnergyLabel" type="Label" parent="CanvasLayer/UI/Dashboard/Header"]
 layout_mode = 2
 text = "🔋 0/0"
 
-[node name="WaveLabel" type="Label" parent="UI/Dashboard/Header"]
-layout_mode = 2
-text = "⚔️ Волна: ..."
-
-[node name="ResourceList" type="VBoxContainer" parent="UI/Dashboard"]
+[node name="ResourcePanel" type="VBoxContainer" parent="CanvasLayer/UI/Dashboard"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 160.0
-offset_right = 290.0
-offset_bottom = 700.0
+offset_left = 0.0
+offset_top = 150.0
+offset_right = 270.0
+offset_bottom = 400.0
 
-[node name="ShipView" type="Control" parent="UI"]
-script = ExtResource("10_ship")
+; --- Build Bar (низ) ---
+[node name="BuildBar" type="Control" parent="CanvasLayer/UI"]
+script = ExtResource("17_bar")
 layout_mode = 1
 anchor_left = 0.0
 anchor_right = 1.0
-offset_left = 310.0
-offset_right = -10.0
-offset_top = 10.0
-offset_bottom = 410.0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -80.0
+grow_horizontal = 2
+visible = false
 
-[node name="GridContainer" type="GridContainer" parent="UI/ShipView"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 10.0
-
-[node name="BuildPanel" type="VBoxContainer" parent="UI/ShipView"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 430.0
-offset_right = 300.0
-offset_bottom = 700.0
-
-[node name="UpgradePanel" type="Control" parent="UI"]
-script = ExtResource("11_upg")
+[node name="ButtonContainer" type="HBoxContainer" parent="CanvasLayer/UI/BuildBar"]
 layout_mode = 1
-anchor_left = 0.0
+anchors_preset = 15
 anchor_right = 1.0
-offset_left = 310.0
-offset_right = -10.0
-offset_top = 430.0
-offset_bottom = 600.0
-
-[node name="InfoLabel" type="Label" parent="UI/UpgradePanel"]
-layout_mode = 0
+anchor_bottom = 1.0
 offset_left = 10.0
 offset_top = 10.0
-offset_right = 200.0
-offset_bottom = 40.0
-text = ""
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="CostLabel" type="Label" parent="UI/UpgradePanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 50.0
-offset_right = 200.0
-offset_bottom = 100.0
-text = ""
-
-[node name="UpgradeBtn" type="Button" parent="UI/UpgradePanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 110.0
-offset_right = 160.0
-offset_bottom = 150.0
-text = "Улучшить"
-
-[node name="RemoveBtn" type="Button" parent="UI/UpgradePanel"]
-layout_mode = 0
-offset_left = 170.0
-offset_top = 110.0
-offset_right = 320.0
-offset_bottom = 150.0
-text = "Снести"
-
-[node name="PrestigeScreen" type="Control" parent="UI"]
-script = ExtResource("12_pui")
+; --- Prestige Screen (поверх всего) ---
+[node name="PrestigeScreen" type="Control" parent="CanvasLayer/UI"]
+script = ExtResource("16_pres")
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -159,7 +176,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="Panel" parent="UI/PrestigeScreen"]
+[node name="Panel" type="Panel" parent="CanvasLayer/UI/PrestigeScreen"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -173,7 +190,7 @@ offset_bottom = 350.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="UI/PrestigeScreen/Panel"]
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/UI/PrestigeScreen/Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -185,25 +202,25 @@ offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="SectorInfo" type="Label" parent="UI/PrestigeScreen/Panel/VBox"]
+[node name="SectorInfo" type="Label" parent="CanvasLayer/UI/PrestigeScreen/Panel/VBox"]
 layout_mode = 2
 text = "Сектор: —"
 
-[node name="CostLabel" type="Label" parent="UI/PrestigeScreen/Panel/VBox"]
+[node name="CostLabel" type="Label" parent="CanvasLayer/UI/PrestigeScreen/Panel/VBox"]
 layout_mode = 2
 text = "Стоимость: —"
 
-[node name="TechPreview" type="Label" parent="UI/PrestigeScreen/Panel/VBox"]
+[node name="TechPreview" type="Label" parent="CanvasLayer/UI/PrestigeScreen/Panel/VBox"]
 layout_mode = 2
 text = "Тех-очки: —"
 
-[node name="JumpBtn" type="Button" parent="UI/PrestigeScreen/Panel/VBox"]
+[node name="JumpBtn" type="Button" parent="CanvasLayer/UI/PrestigeScreen/Panel/VBox"]
 layout_mode = 2
-text = "ПРЫЖОК"
+text = "🚀 ПРЫЖОК"
 
-[node name="TechPointsLabel" type="Label" parent="UI/PrestigeScreen/Panel/VBox"]
+[node name="TechPointsLabel" type="Label" parent="CanvasLayer/UI/PrestigeScreen/Panel/VBox"]
 layout_mode = 2
 text = "Тех-очки: 0.0"
 
-[node name="UpgradeList" type="VBoxContainer" parent="UI/PrestigeScreen/Panel/VBox"]
+[node name="UpgradeList" type="VBoxContainer" parent="CanvasLayer/UI/PrestigeScreen/Panel/VBox"]
 layout_mode = 2

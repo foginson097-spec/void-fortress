@@ -7,8 +7,8 @@ config_version=5
 [application]
 
 config/name="Void Fortress"
-config/description="Idle space fortress simulator. Build, automate, defend, and jump between sectors."
-config/version="0.1.0"
+config/description="3D idle space fortress. Massive planet-ship with seamless LOD zoom — from cosmos to street."
+config/version="0.2.0"
 run/main_scene="res://scenes/main.tscn"
 config/icon="res://icon.svg"
 
