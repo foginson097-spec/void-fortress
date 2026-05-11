@@ -249,9 +249,5 @@ func get_distance() -> float:
 	return _distance
 
 
-func get_active_face() -> int:
-	return _active_face
-
-
 func get_mode() -> CameraMode:
 	return _mode
