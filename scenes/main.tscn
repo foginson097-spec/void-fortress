@@ -27,7 +27,6 @@ script = ExtResource("1_ctrl")
 [node name="World" type="Node3D" parent="."]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="World"]
-environment = SubResource("WorldEnvironment_xxx")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="World"]
 transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 0, 0)
@@ -51,7 +50,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 500)
 ; --- Atmosphere ---
 [node name="Atmosphere" type="MeshInstance3D" parent="World/Ship"]
 script = ExtResource("14_atmo")
-mesh = SubResource("SphereMesh_atmo")
 
 ; ============ CAMERA ============
 [node name="Camera3D" type="Camera3D" parent="."]

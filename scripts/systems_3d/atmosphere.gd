@@ -21,12 +21,18 @@ func _ready() -> void:
 	if not camera:
 		camera = get_node_or_null("../Camera3D")
 	
+	# Create our own sphere mesh (was removed from .tscn due to SubResource error)
+	var sphere_mesh: SphereMesh = SphereMesh.new()
+	sphere_mesh.radius = atmosphere_radius
+	sphere_mesh.height = atmosphere_radius * 2.0
+	sphere_mesh.radial_segments = 64
+	sphere_mesh.rings = 32
+	mesh = sphere_mesh
+	
 	# Настройка материала
-	var mat: ShaderMaterial = mesh.surface_get_material(0)
-	if not mat:
-		mat = ShaderMaterial.new()
-		mat.shader = _create_atmosphere_shader()
-		mesh.surface_set_material(0, mat)
+	var mat: ShaderMaterial = ShaderMaterial.new()
+	mat.shader = _create_atmosphere_shader()
+	mesh.surface_set_material(0, mat)
 	
 	mat.set_shader_parameter("alpha", 0.0)
 	mat.set_shader_parameter("color", Color(0.3, 0.4, 0.8, 1.0))  # голубоватый туман

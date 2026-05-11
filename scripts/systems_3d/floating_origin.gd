@@ -26,7 +26,7 @@ func _process(_delta: float) -> void:
 	
 	if cam_pos.length() > threshold:
 		# Сдвигаем мир чтобы камера стала ближе к (0,0,0)
-		var shift: Vector3 = -cam_pos + Vector3(recenter_at, 0, recanter_at)
+		var shift: Vector3 = -cam_pos + Vector3(recenter_at, 0, recenter_at)
 		origin_node.global_position += shift
 		_accumulated_offset += shift
 		# Камера автоматически пересчитает позицию в следующем кадре
