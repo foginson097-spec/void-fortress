@@ -5,20 +5,22 @@ extends Camera3D
 
 @export var target: Node3D
 @export var min_distance: float = 0.3
-@export var max_distance: float = 12000.0
-@export var start_distance: float = 600.0
+@export var max_distance: float = 25000.0
+@export var start_distance: float = 2000.0      # видно весь куб в космосе
 
-@export var rotation_speed_h: float = 0.3
-@export var rotation_speed_v: float = 0.3
-@export var zoom_speed: float = 0.12
+@export var rotation_speed_h: float = 0.25
+@export var rotation_speed_v: float = 0.25
+@export var zoom_speed: float = 0.15            # быстрее зум
 
 @export var min_angle_v: float = -89.0
 @export var max_angle_v: float = -1.0
 
 @export var cube_size: float = 400.0
 
-# Порог перехода в RTS-режим (расстояние до грани)
-const FACE_LOCK_DISTANCE: float = 80.0
+# Порог входа в атмосферу (должен совпадать с atmosphere.gd)
+const ATMOSPHERE_RADIUS: float = 100.0
+# RTS включается только когда камера внутри атмосферы И близко к грани
+const FACE_RTS_DISTANCE: float = 70.0
 
 # Face normals (match ship_builder)
 const FACE_NORMALS = [
@@ -116,8 +118,10 @@ func _process(delta: float) -> void:
 	var nearest_face: int = _find_nearest_face(cam_world_pos)
 	var dist_to_face: float = _distance_to_face(cam_world_pos, nearest_face)
 	
-	# Mode decision
-	var target_mode: CameraMode = CameraMode.RTS if dist_to_face < FACE_LOCK_DISTANCE else CameraMode.COSMOS
+	# Mode decision: RTS only inside atmosphere AND close to face
+	var dist_to_cube_center: float = cam_world_pos.distance_to(target.global_position)
+	var inside_atmosphere: bool = dist_to_cube_center < ATMOSPHERE_RADIUS
+	var target_mode: CameraMode = CameraMode.RTS if (inside_atmosphere and dist_to_face < FACE_RTS_DISTANCE) else CameraMode.COSMOS
 	
 	if target_mode != _mode:
 		_mode = target_mode
