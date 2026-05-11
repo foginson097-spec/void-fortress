@@ -160,6 +160,26 @@ func _build_face_continent(face_idx: int) -> Node3D:
 	parent.position = face["normal"] * _half
 	_align_to_normal(parent, face["normal"])
 	
+	# Continent lighting (brighter, ground-level — different from dark space light)
+	var sun: DirectionalLight3D = DirectionalLight3D.new()
+	sun.name = "ContinentSun"
+	sun.light_color = Color(1.0, 0.95, 0.8)  # warm daylight
+	sun.light_energy = 2.5
+	sun.shadow_enabled = true
+	# Position the sun "above" the face in local space
+	sun.position = Vector3(cell_cols * cell_size * 0.5, cell_rows * cell_size, cell_cols * cell_size * 0.3)
+	sun.look_at(Vector3.ZERO, Vector3.UP)
+	parent.add_child(sun)
+	
+	# Ambient light fill
+	var ambient_fill: DirectionalLight3D = DirectionalLight3D.new()
+	ambient_fill.name = "AmbientFill"
+	ambient_fill.light_color = Color(0.4, 0.5, 0.7)
+	ambient_fill.light_energy = 0.6
+	ambient_fill.position = Vector3(-cell_cols * cell_size * 0.3, cell_rows * cell_size * 0.3, -cell_rows * cell_size * 0.5)
+	ambient_fill.look_at(Vector3.ZERO, Vector3.UP)
+	parent.add_child(ambient_fill)
+	
 	# Flat surface platform
 	var platform: MeshInstance3D = MeshInstance3D.new()
 	platform.name = "Platform"

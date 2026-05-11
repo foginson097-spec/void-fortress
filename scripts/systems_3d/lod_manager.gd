@@ -87,9 +87,15 @@ func _set_lod(new_lod: String) -> void:
 
 func _set_face_lod(face_idx: int, lod: String) -> void:
 	# Hide all face LODs, then show only the active face's LOD
+	var on_continent: bool = (lod in ["continent", "city", "street"])
+	
+	# Hide cosmos and orbit when on a continent (RTS mode)
+	if lod_cosmos: lod_cosmos.visible = not on_continent
+	if lod_orbit: lod_orbit.visible = not on_continent
+	
 	for i in range(6):
 		if i in _face_continents:
-			_face_continents[i].visible = (i == face_idx and lod in ["continent", "city", "street"])
+			_face_continents[i].visible = (i == face_idx and on_continent)
 		if i in _face_cities:
 			_face_cities[i].visible = (i == face_idx and lod in ["city", "street"])
 		if i in _face_streets:

@@ -22,7 +22,8 @@ const ATMOSPHERE_RADIUS: float = 100.0
 # RTS включается только когда камера внутри атмосферы И близко к грани
 const FACE_RTS_DISTANCE: float = 70.0
 
-# Face normals (match ship_builder)
+# Hysteresis: once locked to a face, don't switch until camera is clearly closer to another
+const FACE_SWITCH_MARGIN: float = 15.0  # meters — minimum advantage to switch faces
 const FACE_NORMALS = [
 	Vector3(0, 0, 1),   # Front
 	Vector3(0, 0, -1),  # Back
@@ -113,9 +114,18 @@ func _process(delta: float) -> void:
 	# Smooth zoom
 	_distance = lerp(_distance, _target_distance, zoom_smoothing * delta)
 	
-	# Detect nearest face
+	# Detect nearest face with hysteresis
 	var cam_world_pos: Vector3 = global_position
 	var nearest_face: int = _find_nearest_face(cam_world_pos)
+	
+	# If already locked to a face in RTS, don't switch without margin
+	if _mode == CameraMode.RTS and _active_face >= 0 and nearest_face != _active_face:
+		var dist_current: float = abs(_distance_to_face(cam_world_pos, _active_face))
+		var dist_new: float = abs(_distance_to_face(cam_world_pos, nearest_face))
+		# Only switch if new face is significantly closer
+		if dist_current - dist_new < FACE_SWITCH_MARGIN:
+			nearest_face = _active_face  # stay on current face
+	
 	var dist_to_face: float = _distance_to_face(cam_world_pos, nearest_face)
 	
 	# Mode decision: RTS only inside atmosphere AND close to face
