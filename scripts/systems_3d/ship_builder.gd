@@ -163,8 +163,8 @@ func build_lod_orbit() -> Node3D:
 		line_mat.emission_enabled = true
 		line_mat.emission = Color(0.1, 0.3, 0.6)
 		line_mat.emission_energy_multiplier = 0.5
-		line.material_override = line_mat
-		parent.add_child(line)
+		line_h.material_override = line_mat
+		parent.add_child(line_h)
 	
 	print("[ShipBuilder] LOD_Orbit: flat plane + 6 geometric continents + 3 channels")
 	_set_visibility_range(parent, 40.0, 500.0)
