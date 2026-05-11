@@ -491,6 +491,9 @@ func _build_wire_river(parent: Node3D, points: Array) -> void:
 		box.size = Vector3(0.4, 0.02, length)
 		segment.mesh = box
 		segment.position = mid
+		
+		# Важно: добавить в дерево ДО look_at()
+		parent.add_child(segment)
 		segment.look_at(end, Vector3.UP)
 		segment.rotate_object_local(Vector3.UP, TAU / 4.0)  # box alignment
 		
@@ -500,7 +503,6 @@ func _build_wire_river(parent: Node3D, points: Array) -> void:
 		wire_mat.emission = Color(0.0, 0.3, 0.7)
 		wire_mat.emission_energy_multiplier = 0.8
 		segment.material_override = wire_mat
-		parent.add_child(segment)
 	
 	# Узлы на точках (круглые распределители)
 	for point in points:
