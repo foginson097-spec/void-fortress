@@ -46,24 +46,23 @@ func _process(_delta: float) -> void:
 
 
 func _lod_from_distance(dist: float) -> String:
-	# С гистерезисом — переключение вверх (приближение) требует ближе,
-	# переключение вниз (отдаление) требует дальше.
+	# С гистерезисом
 	var h: float = 1.0 - hysteresis
 	
 	match _current_lod:
 		"cosmos":
-			if dist < 1000.0 * h: return "orbit"
+			if dist < 500.0 * h: return "orbit"
 		"orbit":
-			if dist < 100.0 * h: return "continent"
-			elif dist > 1000.0 / h: return "cosmos"
+			if dist < 40.0 * h: return "continent"
+			elif dist > 500.0 / h: return "cosmos"
 		"continent":
-			if dist < 10.0 * h: return "city"
-			elif dist > 100.0 / h: return "orbit"
+			if dist < 4.0 * h: return "city"
+			elif dist > 40.0 / h: return "orbit"
 		"city":
-			if dist < 1.0 * h: return "street"
-			elif dist > 10.0 / h: return "continent"
+			if dist < 0.5 * h: return "street"
+			elif dist > 4.0 / h: return "continent"
 		"street":
-			if dist > 1.0 / h: return "city"
+			if dist > 0.5 / h: return "city"
 	
 	return _current_lod
 

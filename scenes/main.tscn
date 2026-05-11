@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://main3d00000000"]
+[gd_scene load_steps=21 format=3 uid="uid://main3d00000000"]
 
 [ext_resource type="Script" path="res://scripts/game_controller.gd" id="1_ctrl"]
 [ext_resource type="Script" path="res://scripts/systems/resource_manager.gd" id="2_rm"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://scripts/systems_3d/ship_builder.gd" id="12_sb"]
 [ext_resource type="Script" path="res://scripts/systems_3d/star_field.gd" id="13_star"]
 [ext_resource type="Script" path="res://scripts/systems_3d/atmosphere.gd" id="14_atmo"]
+[ext_resource type="Script" path="res://scripts/systems_3d/drone_animator.gd" id="18_drone"]
 
 [ext_resource type="Script" path="res://scripts/ui/dashboard_ui.gd" id="15_dash"]
 [ext_resource type="Script" path="res://scripts/ui/prestige_ui.gd" id="16_pres"]
@@ -66,6 +67,10 @@ script = ExtResource("11_lod")
 [node name="ShipBuilder" type="Node" parent="."]
 script = ExtResource("12_sb")
 ship_root = NodePath("../World/Ship")
+
+[node name="DroneAnimator" type="Node3D" parent="."]
+script = ExtResource("18_drone")
+lod_cosmos = NodePath("../World/Ship/LOD_Cosmos")
 
 ; ============ GAME LOGIC SYSTEMS ============
 [node name="Systems" type="Node" parent="."]

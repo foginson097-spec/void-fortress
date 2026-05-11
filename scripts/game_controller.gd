@@ -57,6 +57,10 @@ func _ready() -> void:
 	lod_manager.lod_city = $World/Ship/LOD_City
 	lod_manager.lod_street = $World/Ship/LOD_Street
 	
+	# Настроить Drone Animator
+	if has_node("DroneAnimator"):
+		$DroneAnimator.lod_cosmos = $World/Ship/LOD_Cosmos
+	
 	# Настроить атмосферу
 	if atmosphere and atmosphere.has_method("_ready"):
 		atmosphere.camera = orbit_camera
