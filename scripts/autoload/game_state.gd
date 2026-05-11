@@ -40,6 +40,7 @@ var permanent_upgrades: Dictionary = {}  # { "mining_bonus": 0.0, "auto_craft": 
 var last_save_timestamp: float = 0.0
 
 # How many seconds have passed in this session since last tick
+@warning_ignore("unused_private_class_variable")
 var _accumulated_time: float = 0.0
 
 # ---------- SIGNALS ----------

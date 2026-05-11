@@ -150,7 +150,7 @@ func _handle_3d_click(screen_pos: Vector2) -> void:
 			if parts.size() >= 3:
 				var col: int = parts[1].to_int()
 				var row: int = parts[2].to_int()
-				var pos: Vector2i = Vector2i(col, row)
+				var _pos: Vector2i = Vector2i(col, row)
 				print("[3D Click] Cell: %d,%d" % [col, row])
 				# TODO: показать панель апгрейда для этой ячейки
 

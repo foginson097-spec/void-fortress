@@ -1,12 +1,12 @@
 extends Control
 ## Prestige screen — shown when player wants to jump to next sector.
 
-@onready var sector_info: Label = $SectorInfo
-@onready var cost_label: Label = $CostLabel
-@onready var tech_preview: Label = $TechPreview
-@onready var jump_btn: Button = $JumpBtn
-@onready var upgrade_list: VBoxContainer = $UpgradeList
-@onready var tech_points_label: Label = $TechPointsLabel
+@onready var sector_info: Label = $Panel/VBox/SectorInfo
+@onready var cost_label: Label = $Panel/VBox/CostLabel
+@onready var tech_preview: Label = $Panel/VBox/TechPreview
+@onready var jump_btn: Button = $Panel/VBox/JumpBtn
+@onready var upgrade_list: VBoxContainer = $Panel/VBox/UpgradeList
+@onready var tech_points_label: Label = $Panel/VBox/TechPointsLabel
 
 
 func _ready() -> void:
