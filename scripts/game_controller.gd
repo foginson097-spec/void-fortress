@@ -39,6 +39,7 @@ func _ready() -> void:
 	GameState.last_save_timestamp = Time.get_unix_time_from_system()
 	
 	# Построить LOD-заглушки
+	ship_builder.ship_root = $World/Ship
 	ship_builder.build_all_lods()
 	
 	# Настроить камеру

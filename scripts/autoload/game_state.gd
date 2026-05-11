@@ -48,9 +48,12 @@ signal resources_changed
 signal grid_changed
 signal population_changed
 signal defense_changed
+@warning_ignore("unused_signal")
 signal sector_changed
+@warning_ignore("unused_signal")
 signal prestige_changed
-signal game_ticked  # emitted every tick (1 sec)
+@warning_ignore("unused_signal")
+signal game_ticked  # emitted externally by game_controller
 
 # ---------- CONSTANTS ----------
 const TICK_INTERVAL: float = 1.0  # one tick per second

@@ -368,16 +368,19 @@ func build_lod_street() -> Node3D:
 # ============================
 # HELPERS
 # ============================
-func _get_or_create_child(parent_node: Node3D, name: String) -> Node3D:
+func _get_or_create_child(parent_node: Node3D, node_name: String) -> Node3D:
+	if not parent_node:
+		push_error("[ShipBuilder] parent_node is null — ship_root not set. Call ship_builder.ship_root = $World/Ship first.")
+		return Node3D.new()
 	for child in parent_node.get_children():
-		if child.name == name:
+		if child.name == node_name:
 			# Очистить перед пересборкой
 			for gc in child.get_children():
 				gc.queue_free()
 			return child
 	
 	var node: Node3D = Node3D.new()
-	node.name = name
+	node.name = node_name
 	parent_node.add_child(node)
 	return node
 
