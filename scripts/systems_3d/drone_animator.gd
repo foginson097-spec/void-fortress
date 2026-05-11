@@ -49,7 +49,7 @@ func _animate_drone(light: OmniLight3D, delta: float) -> void:
 	light.light_energy = 0.4 + sin(_time * 3.0 + light.position.x * 0.1) * 0.3
 
 
-func _animate_flare(light: OmniLight3D, delta: float) -> void:
+func _animate_flare(light: OmniLight3D, _delta: float) -> void:
 	var phase: float = light.get_meta("phase", 0.0)
 	# Вспышка раз в 2-5 секунд
 	var cycle: float = sin(_time * 1.5 + phase)
