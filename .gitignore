@@ -1,0 +1,15 @@
+# Godot-specific
+.godot/
+*.translation
+.import/
+
+# User data (saves)
+*.save
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
