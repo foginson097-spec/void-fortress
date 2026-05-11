@@ -51,6 +51,7 @@ func _ready() -> void:
 	lod_manager.camera = orbit_camera
 	lod_manager.lod_cosmos = $World/Ship/LOD_Cosmos
 	lod_manager.lod_orbit = $World/Ship/LOD_Orbit
+	lod_manager.star_field = $World/StarField
 	
 	# Register face LODs
 	for i in range(6):

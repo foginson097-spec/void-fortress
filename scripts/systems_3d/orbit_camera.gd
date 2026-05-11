@@ -137,15 +137,18 @@ func _process(delta: float) -> void:
 		_mode = target_mode
 		if _mode == CameraMode.RTS:
 			_active_face = nearest_face
-			# Initialize RTS state from current camera position
-			_init_rts_from_camera()
+			# Snap to face center — camera "attracts" to continent center
+			_rts_pan = Vector2.ZERO
+			_rts_zoom = 40.0  # nice viewing distance
+			_transition_t = 0.0  # start smooth fly-in
 		else:
 			_active_face = -1
 			_rts_pan = Vector2.ZERO
+			_transition_t = 1.0  # start at RTS, fade out to cosmos
 	
-	# Smooth transition
+	# Mode transitions
 	if _mode == CameraMode.RTS:
-		_transition_t = move_toward(_transition_t, 1.0, mode_transition_speed * delta)
+		_transition_t = move_toward(_transition_t, 1.0, mode_transition_speed * 0.5 * delta)
 		_process_rts(delta)
 	else:
 		_transition_t = move_toward(_transition_t, 0.0, mode_transition_speed * delta)
@@ -164,7 +167,7 @@ func _process_cosmos(_delta: float) -> void:
 	look_at(target.global_position, Vector3.UP)
 
 
-func _process_rts(_delta: float) -> void:
+func _process_rts(delta: float) -> void:
 	if _active_face < 0:
 		return
 	
@@ -173,43 +176,26 @@ func _process_rts(_delta: float) -> void:
 	var u: Vector3 = perp[0]
 	var v: Vector3 = perp[1]
 	
-	# Target: camera looks perpendicular to face from above
-	var face_center: Vector3 = target.global_position + face_normal * cube_size * 0.5
+	# Target: center of face, camera perpendicular above
+	var half: float = cube_size * 0.5
+	var face_center: Vector3 = target.global_position + face_normal * half
 	var cam_target: Vector3 = face_center + u * _rts_pan.x + v * _rts_pan.y
-	var cam_pos: Vector3 = cam_target + face_normal * _rts_zoom
+	var target_pos: Vector3 = cam_target + face_normal * _rts_zoom
 	
-	# Blend between cosmos (free) position and RTS (locked) position
-	# _transition_t: 0=cosmos, 1=RTS
-	global_position = global_position.lerp(cam_pos, _transition_t * 5.0 * _delta)
-	var look_target: Vector3 = face_center.lerp(cam_target, _transition_t * 5.0 * _delta)
-	look_at(look_target, Vector3.UP)
-
-
-func _init_rts_from_camera() -> void:
-	## Initialize RTS pan/zoom from current camera position relative to face.
-	if _active_face < 0:
-		return
-	var face_normal: Vector3 = FACE_NORMALS[_active_face]
-	var face_center: Vector3 = target.global_position + face_normal * cube_size * 0.5
+	# Fly camera to target (smooth transition)
+	global_position = global_position.lerp(target_pos, _transition_t)
 	
-	# Distance from camera to face plane
-	var to_cam: Vector3 = global_position - face_center
-	_rts_zoom = abs(to_cam.dot(face_normal))
-	_rts_zoom = clamp(_rts_zoom, 1.0, 200.0)
-	
-	# Pan: project camera position onto face plane
-	var perp: Array = _perpendiculars(face_normal)
-	var u: Vector3 = perp[0]
-	var v: Vector3 = perp[1]
-	var on_plane: Vector3 = global_position - face_normal * to_cam.dot(face_normal)
-	var from_center: Vector3 = on_plane - face_center
-	_rts_pan.x = from_center.dot(u)
-	_rts_pan.y = from_center.dot(v)
+	# Look at face center
+	var look_center: Vector3 = face_center.lerp(cam_target, _transition_t)
+	look_at(look_center, Vector3.UP)
 
 
 # ===============================
 # FACE DETECTION
 # ===============================
+
+func get_active_face() -> int:
+	return _active_face
 
 func _find_nearest_face(pos: Vector3) -> int:
 	var local_pos: Vector3 = pos - target.global_position

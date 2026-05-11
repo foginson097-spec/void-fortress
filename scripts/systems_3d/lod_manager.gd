@@ -5,6 +5,7 @@ extends Node
 @export var camera: Camera3D
 @export var lod_cosmos: Node3D
 @export var lod_orbit: Node3D
+@export var star_field: Node3D           # звёзды — скрываются на континенте
 
 # Face LOD nodes (set in game_controller)
 var _face_continents: Dictionary = {}  # {0: Node3D, 1: Node3D, ...}
@@ -89,9 +90,10 @@ func _set_face_lod(face_idx: int, lod: String) -> void:
 	# Hide all face LODs, then show only the active face's LOD
 	var on_continent: bool = (lod in ["continent", "city", "street"])
 	
-	# Hide cosmos and orbit when on a continent (RTS mode)
+	# Hide cosmos, orbit, and stars when on a continent (RTS mode)
 	if lod_cosmos: lod_cosmos.visible = not on_continent
 	if lod_orbit: lod_orbit.visible = not on_continent
+	if star_field: star_field.visible = not on_continent
 	
 	for i in range(6):
 		if i in _face_continents:
